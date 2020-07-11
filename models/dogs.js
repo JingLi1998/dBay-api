@@ -7,26 +7,29 @@ const User = require('./users');
 const dogSchema = new Schema({
   breed: String,
   gender: String,
-  image: String,
+  imageUrl: String,
+  ownerImageUrl: String,
   name: String,
   age: Number,
   price: Number,
   description: String,
+  likeCount: { type: Number, default: 0 },
+  commentCount: { type: Number, default: 0 },
   created: { type: Date, default: Date.now },
   owner: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
 });
 
-dogSchema.pre('remove', async function() {
+dogSchema.pre('remove', async function () {
   const user = await User.findOne({ username: this.owner }).exec();
   const dogId = this._id;
-  user.dogs = user.dogs.filter(dog => dog.toString() !== dogId.toString());
+  user.dogs = user.dogs.filter((dog) => dog.toString() !== dogId.toString());
   await Promise.all([
     Comment.deleteMany({ dogId: this._id }),
     Like.deleteMany({ dogId: this._id }),
-    user.save()
+    user.save(),
   ]);
 });
 

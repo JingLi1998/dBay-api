@@ -5,17 +5,18 @@ const commentSchema = Schema({
   dogId: {
     type: Schema.Types.ObjectId,
     ref: 'Dog',
-    required: true
+    required: true,
   },
   username: {
     type: String,
-    required: true
+    required: true,
   },
   body: {
     type: String,
-    required: true
+    required: true,
   },
-  created: { type: Date, default: Date.now }
+  imageUrl: { type: String },
+  created: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model('Comment', commentSchema);

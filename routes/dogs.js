@@ -1,5 +1,8 @@
 const router = require('express').Router();
 const passport = require('passport');
+const multer = require('multer');
+const multerS3 = require('multer-s3');
+const AWS = require('aws-sdk');
 
 // import middleware
 const { jwtValidate } = require('../middleware/auth');
@@ -10,7 +13,8 @@ const {
   getDog,
   postDog,
   putDog,
-  deleteDog
+  deleteDog,
+  uploadDogImage
 } = require('../handlers/dogs');
 
 // import comment handlers
@@ -22,6 +26,24 @@ const {
 
 // import like handlers
 const { likeDog, unlikeDog } = require('../handlers/likes');
+
+// config aws
+s3 = new AWS.S3({ params: { Bucket: 'dbay-app' } });
+
+// config multer
+const upload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: 'dbay-app',
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: function(req, file, cb) {
+      let fileName = `${file.fieldname}/${
+        req.params.id
+      }/${Date.now()}-${file.originalname.replace(/ /g, '_')}`;
+      cb(null, fileName);
+    }
+  })
+});
 
 // assign dog handlers to routes
 router.get('/', getDogs);
@@ -43,6 +65,13 @@ router.delete(
   passport.authenticate('jwt', { session: false }),
   jwtValidate,
   deleteDog
+);
+router.post(
+  '/:id/uploadImage',
+  passport.authenticate('jwt', { session: false }),
+  jwtValidate,
+  upload.single('dogImages'),
+  uploadDogImage
 );
 
 // assign comment handlers to routes
